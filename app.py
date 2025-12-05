@@ -179,7 +179,7 @@ st.subheader("Atur Bobot & Tipe Kriteria")
 
 criteria_meta = []
 for c in criteria_cols:
-    w = st.number_input(f"Bobot {c} (0–100)", 0.0, 100.0, 10.0, key=f"w_{c}")
+    w = st.number_input(f"Bobot {c} (0–100)", 0.0, 100.0, 20.0, key=f"w_{c}")
     t = st.selectbox(f"Tipe {c}", ["Benefit","Cost"], key=f"t_{c}")
     criteria_meta.append({"name":c, "weight":w, "type":t})
 
@@ -307,6 +307,7 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
+
 
 
 
