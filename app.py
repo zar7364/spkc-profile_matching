@@ -42,15 +42,7 @@ st.markdown(
 # -----------------------------------------------------------
 st.title("Model Sistem Pendukung Keputusan Cerdas untuk Menentukan Kandidat Terbaik dalam Promosi Jabatan")
 st.subheader("Profile Matching")
-# st.write("")
 st.write("Aplikasi ini diajukan untuk memenuhi tugas SPKC")
-# st.write("")
-# st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking kandidat berdasarkan kesesuaian profil ideal.")
-
-# cols = st.columns(30)
-# with cols[17]:
-#     st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg",width=1000)
-
 
 col1, col2, col3 = st.columns(3)
 
@@ -81,7 +73,6 @@ uploaded_file = None
 paste_data = None
 
 if not use_dummy:
-    # st.subheader("Upload File atau Paste Data")
     uploaded_file = st.file_uploader("Upload CSV / Excel", type=["csv", "xlsx"])
 
     paste_data = st.text_area(
@@ -109,7 +100,6 @@ if use_template:
 # -----------------------------------------------------------
 # DATA HANDLING
 # -----------------------------------------------------------
-
 if use_dummy:
     st.success("Menggunakan Dummy Data")
     df_scores = pd.DataFrame({
@@ -138,8 +128,8 @@ else:
             else:
                 df_scores = pd.read_excel(uploaded_file)
             st.success("File berhasil dibaca!")
-        except:
-            st.error("Format file tidak bisa dibaca. Pastikan format benar.")
+        except Exception as e:
+            st.error(f"Format file tidak bisa dibaca. Pastikan format benar. ({e})")
             st.stop()
     else:
         st.warning("Upload file atau paste data terlebih dahulu.")
@@ -171,17 +161,6 @@ conv_dict = dict(zip(conv_edit["Gap"], conv_edit["Weight"]))
 st.header("Data Kandidat")
 st.dataframe(df_scores)
 
-# -----------------------------------------------------------
-# CRITERIA METADATA
-# -----------------------------------------------------------
-st.markdown("---")
-st.subheader("Atur Bobot & Tipe Kriteria")
-
-criteria_meta = []
-for c in criteria_cols:
-    w = st.number_input(f"Bobot {c} (0–100)", 0.0, 100.0, 20.0, key=f"w_{c}")
-    t = st.selectbox(f"Tipe {c}", ["Benefit","Cost"], key=f"t_{c}")
-    criteria_meta.append({"name":c, "weight":w, "type":t})
 
 # -----------------------------------------------------------
 # IDEAL PROFILE
@@ -192,15 +171,15 @@ st.subheader("Profil Ideal")
 ideal = {}
 for c in criteria_cols:
     maxv = float(df_scores[c].max())
-    minv = float(df_scores[c].min())
-    is_cost = any(m['name']==c and m['type']=="Cost" for m in criteria_meta)
-    default_val = minv if is_cost else maxv
-    ideal[c] = st.number_input(f"Ideal {c}", value=default_val)
+    # default = max (karena semua benefit)
+    default_val = maxv
+    ideal[c] = st.number_input(f"Ideal {c}", value=default_val, key=f"ideal_{c}")
 
 # -----------------------------------------------------------
 # FUNCTIONS
 # -----------------------------------------------------------
 def map_gap_to_weight(gap, conv):
+    # round to nearest integer gap then map; if beyond keys, find nearest key
     g = int(round(gap))
     if g in conv:
         return conv[g]
@@ -208,16 +187,13 @@ def map_gap_to_weight(gap, conv):
     nearest = min(keys, key=lambda x: abs(x - g))
     return conv[nearest]
 
-def compute_profile_matching(df, cand_col, meta, ideal_dict, conv):
+def compute_profile_matching(df, cand_col, criteria_list, ideal_dict, conv):
     df = df.copy()
     gaps = {}
     weights = {}
-    for m in meta:
-        c = m["name"]
-        if m["type"] == "Benefit":
-            gap = df[c] - ideal_dict[c]
-        else:
-            gap = ideal_dict[c] - df[c]
+    for c in criteria_list:
+        # All treated as Benefit (candidate - ideal)
+        gap = df[c] - ideal_dict[c]
         gaps[c] = gap
         weights[c] = gap.apply(lambda g: map_gap_to_weight(g, conv))
     return pd.concat([df[[cand_col]],
@@ -228,29 +204,27 @@ def compute_profile_matching(df, cand_col, meta, ideal_dict, conv):
 # -----------------------------------------------------------
 # CALCULATION
 # -----------------------------------------------------------
-results_basic = compute_profile_matching(df_scores, candidate_col, criteria_meta, ideal, conv_dict)
+results_basic = compute_profile_matching(df_scores, candidate_col, criteria_cols, ideal, conv_dict)
 
-total_weight = sum(m["weight"] for m in criteria_meta)
-for m in criteria_meta:
-    m["norm_weight"] = m["weight"] / total_weight if total_weight > 0 else 0
-
-nw = {m["name"]:m["norm_weight"] for m in criteria_meta}
-
+st.markdown("---")
 st.subheader("Core & Secondary Factor")
 
 core = st.multiselect("Pilih Core Factor", criteria_cols, default=criteria_cols[:len(criteria_cols)//2])
 sec = [c for c in criteria_cols if c not in core]
 
-def weighted_factor(row, group):
-    num = sum(row[f"W_{c}"] * nw[c] for c in group)
-    den = sum(nw[c] for c in group)
-    return num/den if den > 0 else 0
+def simple_avg_factor(row, group):
+    # simple average of W_{c} across group (equal weighting per variable)
+    if len(group) == 0:
+        return 0
+    s = sum(row[f"W_{c}"] for c in group)
+    return s / len(group)
 
 results = results_basic.copy()
-results["CF"] = results.apply(lambda r: weighted_factor(r, core), axis=1)
-results["SF"] = results.apply(lambda r: weighted_factor(r, sec), axis=1)
+results["CF"] = results.apply(lambda r: simple_avg_factor(r, core), axis=1)
+results["SF"] = results.apply(lambda r: simple_avg_factor(r, sec), axis=1)
 
-pct_cf = st.slider("Persentase CF", 0, 100, 60)
+pct_cf = st.slider("Persentase CF (%)", 0, 100, 60)
+st.write("Secondary Factor otomatis terhitung 1-CF")
 pct_sf = 100 - pct_cf
 
 results["Final Score"] = results["CF"]*(pct_cf/100) + results["SF"]*(pct_sf/100)
@@ -260,7 +234,7 @@ results["Rank"] = results["Final Score"].rank(ascending=False, method="min").ast
 # OUTPUT TABLE
 # -----------------------------------------------------------
 st.subheader("Hasil Akhir")
-st.dataframe(results.sort_values("Rank"))
+st.dataframe(results.sort_values("Rank").reset_index(drop=True))
 
 # -----------------------------------------------------------
 # SPIDER CHART
@@ -268,7 +242,7 @@ st.dataframe(results.sort_values("Rank"))
 st.subheader("Spiderweb Radar Chart")
 
 criteria_list = criteria_cols
-ideal_weight = conv_dict[0]
+ideal_weight = conv_dict.get(0, list(conv_dict.values())[0])
 
 fig = go.Figure()
 
@@ -307,14 +281,3 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
-
-
-
-
-
-
-
-
-
-
-
