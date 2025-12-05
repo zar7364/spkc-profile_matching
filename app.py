@@ -13,12 +13,20 @@ st.set_page_config(page_title="SPKC - Profile Matching", layout="wide")
 st.markdown(
     """
     <style>
+    /* CENTER THE MAIN CONTAINER */
     .block-container {
         max-width: 900px;
         margin-left: auto;
         margin-right: auto;
         text-align: center;
     }
+
+    /* CENTER ALL TEXT ELEMENTS */
+    h1, h2, h3, h4, h5, h6, p, div, span {
+        text-align: center !important;
+    }
+
+    /* CENTER ALL IMAGES */
     img {
         display: block;
         margin-left: auto;
@@ -41,7 +49,7 @@ st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking 
 
 cols = st.columns(100)
 with cols[17]:
-    st.image("https://pertanian.uma.ac.id/wp-content/uploads/2019/12/UGM.png")
+    st.image("https://pertanian.uma.ac.id/wp-content/uploads/2019/12/UGM.png", width=260)
 
 st.write("Oleh:")
 st.subheader("Nezar Abdilah Prakasa (563414)")
@@ -57,11 +65,8 @@ st.markdown("---")
 st.subheader("Input Data")
 use_dummy = st.checkbox("Gunakan data dummy", value=False)
 
-
 uploaded_file = None
 paste_data = None
-
-
 
 if not use_dummy:
     # st.subheader("Upload File atau Paste Data")
@@ -290,7 +295,3 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
-
-
-
-
