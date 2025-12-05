@@ -42,9 +42,9 @@ st.markdown(
 # -----------------------------------------------------------
 st.title("Aplikasi - Sistem Pendukung Keputusan Cerdas (SPKC)")
 st.subheader("Profile Matching")
-st.write("")
+# st.write("")
 st.write("Aplikasi ini diajukan untuk memenuhi tugas SPKC")
-st.write("")
+# st.write("")
 st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking kandidat berdasarkan kesesuaian profil ideal.")
 
 # cols = st.columns(30)
@@ -307,6 +307,7 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
+
 
 
 
