@@ -41,7 +41,7 @@ st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking 
 
 cols = st.columns(100)
 with cols[17]:
-    st.image(r"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpR7l0cSyfhFQAWHnSiwJ7FzscNXoxQr7KRA&s", width=200)
+    st.image(r"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpR7l0cSyfhFQAWHnSiwJ7FzscNXoxQr7KRA&s", width=1280)
 
 st.write("Oleh:")
 st.subheader("Nezar Abdilah Prakasa (563414)")
@@ -290,4 +290,5 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
+
 
