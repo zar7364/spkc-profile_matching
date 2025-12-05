@@ -49,7 +49,7 @@ st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking 
 
 cols = st.columns(30)
 with cols[17]:
-    st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg")
+    st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg",width=1000)
 
 st.write("Oleh:")
 st.subheader("Nezar Abdilah Prakasa (563414)")
@@ -295,6 +295,7 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
+
 
 
 
