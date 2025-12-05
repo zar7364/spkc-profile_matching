@@ -47,9 +47,21 @@ st.write("Aplikasi ini diajukan untuk memenuhi tugas SPKC")
 st.write("")
 st.write("Aplikasi ini menghitung profile matching (gap analysis) dan meranking kandidat berdasarkan kesesuaian profil ideal.")
 
-cols = st.columns(30)
-with cols[17]:
-    st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg",width=1000)
+# cols = st.columns(30)
+# with cols[17]:
+#     st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg",width=1000)
+
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.write(' ')
+
+with col2:
+    st.image("https://ugm.ac.id/wp-content/uploads/2022/11/LOGO-UGM-BAKU-tnp-back-grou-300x300.jpg")
+
+with col3:
+    st.write(' ')
 
 st.write("Oleh:")
 st.subheader("Nezar Abdilah Prakasa (563414)")
@@ -295,6 +307,7 @@ with pd.ExcelWriter(buf2, engine="openpyxl") as writer:
 buf2.seek(0)
 
 st.download_button("Download hasil (xlsx)", buf2, file_name="profile_matching_result.xlsx")
+
 
 
 
